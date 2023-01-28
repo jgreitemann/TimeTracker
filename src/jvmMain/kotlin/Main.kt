@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.material.Card
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,74 +32,80 @@ enum class State {
 @OptIn(ExperimentalTime::class)
 @Composable
 @Preview
-fun App() {
-    var start = TimeSource.Monotonic.markNow()
-    var startDuration = Duration.ZERO
-    var state by remember { mutableStateOf(State.Pausing) }
-    var duration by remember { mutableStateOf(Duration.ZERO) }
-
-    LaunchedEffect(key1 = state) {
-        if (state == State.Working) {
-            startDuration += duration
-            while (true) {
-                delay(1000)
-                duration = start.elapsedNow() + startDuration
-            }
+fun Timer(duration: Duration, running: Boolean, onTimeElapsed: (Duration) -> Unit) {
+    LaunchedEffect(key1 = duration, key2 = running) {
+        if (running) {
+            val start = TimeSource.Monotonic.markNow()
+            delay(1000)
+            onTimeElapsed(start.elapsedNow())
         }
     }
 
+    Text(
+        text = duration.toComponents { hours, minutes, seconds, _ ->
+            "%02d:%02d:%02d".format(
+                hours,
+                minutes,
+                seconds
+            )
+        },
+        style = MaterialTheme.typography.h1,
+    )
+}
+
+@Composable
+@Preview
+fun App() {
+    var duration by remember { mutableStateOf(Duration.ZERO) }
+    var state by remember { mutableStateOf(State.Pausing) }
+
     MaterialTheme {
         Column(
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = duration.toComponents { hours, minutes, seconds, _ ->
-                    "%02d:%02d:%02d".format(
-                        hours,
-                        minutes,
-                        seconds
-                    )
-                },
-                style = MaterialTheme.typography.h2,
-            )
-
-            Row {
-
-                Button(
-                    onClick = {
-                        state = state.toggled()
-                        if (state == State.Working) {
-                            start = TimeSource.Monotonic.markNow()
-                        }
-                    },
-                    modifier = Modifier.padding(10.dp),
+            Card {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        when (state) {
-                            State.Pausing -> if (duration == Duration.ZERO) {
-                                "Start working"
-                            } else {
-                                "Resume work"
-                            }
+                    Timer(duration, state == State.Working, onTimeElapsed = { elapsed -> duration += elapsed })
 
-                            State.Working -> "Take a break"
+                    Row {
+
+                        Button(
+                            onClick = {
+                                state = state.toggled()
+                            },
+                            modifier = Modifier.padding(10.dp),
+                        ) {
+                            Text(
+                                when (state) {
+                                    State.Pausing -> if (duration == Duration.ZERO) {
+                                        "Start working"
+                                    } else {
+                                        "Resume work"
+                                    }
+
+                                    State.Working -> "Take a break"
+                                }
+                            )
                         }
-                    )
-                }
 
-                Button(
-                    onClick = {
-                        state = State.Pausing
-                        duration = Duration.ZERO
-                    },
-                    modifier = Modifier.padding(10.dp),
-                    enabled = state == State.Working || duration > Duration.ZERO
-                ) {
-                    Text("End workday")
-                }
+                        Button(
+                            onClick = {
+                                state = State.Pausing
+                                duration = Duration.ZERO
+                            },
+                            modifier = Modifier.padding(10.dp),
+                            enabled = state == State.Working || duration > Duration.ZERO
+                        ) {
+                            Text("End workday")
+                        }
 
+                    }
+                }
             }
+
         }
     }
 }
