@@ -1,12 +1,12 @@
-import androidx.compose.material.MaterialTheme
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
-import androidx.compose.material.Text
 import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,9 +14,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.delay
-import kotlin.time.TimeSource
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.periodUntil
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 
 enum class State {
     Pausing {
@@ -29,35 +31,53 @@ enum class State {
     abstract fun toggled(): State
 }
 
-@OptIn(ExperimentalTime::class)
-@Composable
-@Preview
-fun Timer(duration: Duration, running: Boolean, onTimeElapsed: (Duration) -> Unit) {
-    LaunchedEffect(key1 = duration, key2 = running) {
-        if (running) {
-            val start = TimeSource.Monotonic.markNow()
-            delay(1000)
-            onTimeElapsed(start.elapsedNow())
-        }
+data class DateTimeInterval(val start: Instant, val end: Instant) {
+    operator fun contains(instant: Instant) = instant in start..end
+
+    fun merge(other: DateTimeInterval): DateTimeInterval? = when {
+        other.start in this -> DateTimeInterval(start, maxOf(end, other.end))
+        other.end in this -> DateTimeInterval(minOf(start, other.start), end)
+        else -> null
     }
 
-    Text(
-        text = duration.toComponents { hours, minutes, seconds, _ ->
-            "%02d:%02d:%02d".format(
-                hours,
-                minutes,
-                seconds
-            )
-        },
-        style = MaterialTheme.typography.h1,
+    fun toDuration() = end - start
+    fun toPeriod() = start.periodUntil(end, timeZone = TimeZone.UTC)
+}
+
+private fun Duration.toTimeString() = toComponents { hours, minutes, seconds, _ ->
+    "%02d:%02d:%02d".format(
+        hours,
+        minutes,
+        seconds
     )
+}
+
+
+@Composable
+fun Timer(running: Boolean, onTimeChanged: (DateTimeInterval) -> Unit) {
+    LaunchedEffect(key1 = running) {
+        val start = Clock.System.now()
+        while (running) {
+            onTimeChanged(DateTimeInterval(start, end = Clock.System.now()))
+            delay(1000)
+        }
+    }
 }
 
 @Composable
 @Preview
 fun App() {
-    var duration by remember { mutableStateOf(Duration.ZERO) }
     var state by remember { mutableStateOf(State.Pausing) }
+    val intervals = remember { mutableStateListOf<DateTimeInterval>() }
+
+    Timer(running = state == State.Working) { interval ->
+        val merged = intervals.lastOrNull()?.merge(interval)
+        if (merged != null) {
+            intervals[intervals.lastIndex] = merged
+        } else {
+            intervals.add(interval)
+        }
+    }
 
     MaterialTheme {
         Column(
@@ -68,7 +88,11 @@ fun App() {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Timer(duration, state == State.Working, onTimeElapsed = { elapsed -> duration += elapsed })
+                    Text(
+                        text = intervals.map { it.toDuration() }.fold(Duration.ZERO) { acc, next -> acc + next }
+                            .toTimeString(),
+                        style = MaterialTheme.typography.h1,
+                    )
 
                     Row {
 
@@ -80,7 +104,7 @@ fun App() {
                         ) {
                             Text(
                                 when (state) {
-                                    State.Pausing -> if (duration == Duration.ZERO) {
+                                    State.Pausing -> if (intervals.isEmpty()) {
                                         "Start working"
                                     } else {
                                         "Resume work"
@@ -94,10 +118,10 @@ fun App() {
                         Button(
                             onClick = {
                                 state = State.Pausing
-                                duration = Duration.ZERO
+                                intervals.clear()
                             },
                             modifier = Modifier.padding(10.dp),
-                            enabled = state == State.Working || duration > Duration.ZERO
+                            enabled = state == State.Working || intervals.isNotEmpty()
                         ) {
                             Text("End workday")
                         }
@@ -106,9 +130,14 @@ fun App() {
                 }
             }
 
+            intervals.forEach {
+                Text(it.toDuration().toTimeString())
+            }
+
         }
     }
 }
+
 
 fun main() = application {
     Window(
