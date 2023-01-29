@@ -105,9 +105,7 @@ fun App() {
                 }
             }
 
-            intervals.forEach {
-                Text(it.toDuration().toTimeString())
-            }
+            WorkLogList(intervals)
 
         }
     }
