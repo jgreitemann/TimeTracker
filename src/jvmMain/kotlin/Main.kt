@@ -41,15 +41,9 @@ fun Timer(running: Boolean, onTimeChanged: (DateTimeInterval) -> Unit) {
 @Composable
 fun App(model: WorkLogStore) {
     var state by remember { mutableStateOf(State.Pausing) }
-    val intervals = model.workLog
 
     Timer(running = state == State.Working) { interval ->
-        val merged = intervals.lastOrNull()?.merge(interval)
-        if (merged != null) {
-            intervals[intervals.lastIndex] = merged
-        } else {
-            intervals.add(interval)
-        }
+        model.logWork(interval)
     }
 
     MaterialTheme {
@@ -76,7 +70,7 @@ fun App(model: WorkLogStore) {
                         ) {
                             Text(
                                 when (state) {
-                                    State.Pausing -> if (intervals.isEmpty()) {
+                                    State.Pausing -> if (model.workLog.isEmpty()) {
                                         "Start working"
                                     } else {
                                         "Resume work"
@@ -90,10 +84,10 @@ fun App(model: WorkLogStore) {
                         Button(
                             onClick = {
                                 state = State.Pausing
-                                intervals.clear()
+                                model.clear()
                             },
                             modifier = Modifier.padding(10.dp),
-                            enabled = state == State.Working || intervals.isNotEmpty()
+                            enabled = state == State.Working || model.workLog.isNotEmpty()
                         ) {
                             Text("End workday")
                         }
@@ -102,7 +96,7 @@ fun App(model: WorkLogStore) {
                 }
             }
 
-            WorkLogList(intervals)
+            WorkLogList(model.workLog)
 
         }
     }
