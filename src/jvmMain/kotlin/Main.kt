@@ -89,7 +89,7 @@ fun App(model: WorkLogStore) {
                             modifier = Modifier.padding(10.dp),
                             enabled = state == State.Working || model.workLog.isNotEmpty()
                         ) {
-                            Text("End workday")
+                            Text("Clear work log")
                         }
 
                     }
