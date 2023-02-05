@@ -15,7 +15,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
-import kotlin.time.Duration
 
 enum class State {
     Pausing {
@@ -40,10 +39,9 @@ fun Timer(running: Boolean, onTimeChanged: (DateTimeInterval) -> Unit) {
 }
 
 @Composable
-@Preview
-fun App() {
+fun App(model: WorkLogStore) {
     var state by remember { mutableStateOf(State.Pausing) }
-    val intervals = remember { mutableStateListOf<DateTimeInterval>() }
+    val intervals = model.workLog
 
     Timer(running = state == State.Working) { interval ->
         val merged = intervals.lastOrNull()?.merge(interval)
@@ -64,8 +62,7 @@ fun App() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = intervals.map { it.toDuration() }.fold(Duration.ZERO) { acc, next -> acc + next }
-                            .toTimeString(),
+                        text = model.totalPeriod.toTimeString(),
                         style = MaterialTheme.typography.h1,
                     )
 
@@ -111,12 +108,18 @@ fun App() {
     }
 }
 
+@Composable
+@Preview
+fun AppPreview() {
+    App(FakeWorkLogStore)
+}
+
 
 fun main() = application {
     Window(
         title = "Time Tracker",
         onCloseRequest = ::exitApplication,
     ) {
-        App()
+        App(JsonFileWorkLogStore())
     }
 }
