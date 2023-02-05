@@ -2,7 +2,9 @@ import kotlinx.datetime.DateTimePeriod
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.periodUntil
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class DateTimeInterval(val start: Instant, val end: Instant) {
     operator fun contains(instant: Instant) = instant in start..end
 
