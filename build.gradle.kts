@@ -36,6 +36,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                implementation("com.squareup.okio:okio-fakefilesystem:3.3.0")
             }
         }
     }

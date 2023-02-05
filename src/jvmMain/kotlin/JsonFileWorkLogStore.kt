@@ -5,19 +5,19 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.FileSystem
 import okio.IOException
+import okio.Path
 import okio.Path.Companion.toPath
 
-class JsonFileWorkLogStore : WorkLogStore {
+class JsonFileWorkLogStore(
+    val filePath: Path = "${System.getProperty("user.home")}/workLog.json".toPath(),
+    private var fs: FileSystem = FileSystem.SYSTEM
+) : WorkLogStore {
     override var workLog = mutableStateListOf<DateTimeInterval>()
-
-    private val filePath = "${System.getProperty("user.home")}/workLog.json".toPath()
     private val json = Json { prettyPrint = true }
 
     init {
         try {
-            val fileContent = FileSystem.SYSTEM.read(filePath) {
-                readUtf8()
-            }
+            val fileContent = fs.read(filePath) { readUtf8() }
             workLog = json.decodeFromString<List<DateTimeInterval>>(fileContent).toMutableStateList()
         } catch (_: IOException) {
         }
@@ -31,19 +31,12 @@ class JsonFileWorkLogStore : WorkLogStore {
             workLog.add(work)
         }
 
-        writeToDisk()
+        val fileContent = json.encodeToString(workLog.toList())
+        fs.write(filePath) { writeUtf8(fileContent) }
     }
 
     override fun clear() {
         workLog.clear()
-
-        writeToDisk()
-    }
-
-    private fun writeToDisk() {
-        val fileContent = json.encodeToString(workLog.toList())
-        FileSystem.SYSTEM.write(filePath) {
-            writeUtf8(fileContent)
-        }
+        fs.delete(filePath)
     }
 }
