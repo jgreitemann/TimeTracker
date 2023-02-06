@@ -1,4 +1,3 @@
-
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Divider
@@ -8,10 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalTime
+import androidx.compose.ui.unit.sp
+import kotlinx.datetime.*
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
 import java.util.*
 
@@ -21,6 +19,8 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
     Column {
         workLog
             .groupBy { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date }
+            .asIterable()
+            .reversed()
             .forEach { (date, intervals) ->
                 Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
 
@@ -30,11 +30,18 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
 
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val weekDay = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
                         val month = date.month.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+                        val totalTime = intervals.map { it.toPeriod() }.reduce { acc, period -> acc + period }
 
                         Text("$weekDay, $month ${date.dayOfMonth}")
+                        Text(
+                            "${totalTime.hours}h ${totalTime.minutes}min",
+                            color = MaterialTheme.colors.primaryVariant,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
 
                     Column {
@@ -44,7 +51,7 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
 
                             Text(
                                 "$startTime — $endTime",
-                                Modifier.padding(vertical = 5.dp)
+                                Modifier.padding(vertical = 4.dp)
                             )
                         }
                     }
@@ -66,7 +73,7 @@ fun WorkLogListPreview() {
                 DateTimeInterval(Instant.parse("2023-01-28T22:32:49+01"), Instant.parse("2023-01-29T01:48:09+01")),
                 DateTimeInterval(Instant.parse("2023-01-29T14:42:00+01"), Instant.parse("2023-01-29T15:26:28+01")),
                 DateTimeInterval(Instant.parse("2023-01-29T15:59:07+01"), Instant.parse("2023-01-29T17:05:52+01")),
-                DateTimeInterval(Instant.parse("2023-01-30T21:04:12+01"), Instant.parse("2023-01-30T22:59:08+01")),
+                DateTimeInterval(Instant.parse("2023-02-01T21:04:12+01"), Instant.parse("2023-02-01T22:59:08+01")),
             )
         )
     }
