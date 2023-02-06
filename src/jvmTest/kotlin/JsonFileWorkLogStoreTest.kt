@@ -155,6 +155,13 @@ class JsonFileWorkLogStoreTest {
     }
 
     @Test
+    fun `Clearing the store when no backing file exists doesn't throw`() {
+        val store = JsonFileWorkLogStore(filePath = defaultFilePath, fs)
+        store.clear()
+        assertFalse(fs.exists(defaultFilePath), "The backing file should still not exist.")
+    }
+
+    @Test
     fun `After clearing the store, additional work logs recreate the backing file`() {
         val store = JsonFileWorkLogStore(filePath = validFilePath, fs)
         store.clear()
