@@ -3,6 +3,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -48,10 +49,13 @@ fun App(model: WorkLogStore) {
 
     MaterialTheme {
         Column(
-            Modifier.fillMaxWidth().padding(20.dp),
+            Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Card {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                shape = CutCornerShape(0),
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
