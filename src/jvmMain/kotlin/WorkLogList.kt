@@ -22,8 +22,6 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
             .asIterable()
             .reversed()
             .forEach { (date, intervals) ->
-                Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
-
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -56,6 +54,8 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
                         }
                     }
                 }
+
+                Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
             }
     }
 }
