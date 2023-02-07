@@ -59,10 +59,7 @@ fun App(model: WorkLogStore) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = model.totalPeriod.toTimeString(),
-                        style = MaterialTheme.typography.h1,
-                    )
+                    TimerText(model.totalPeriod, style = MaterialTheme.typography.h2)
 
                     Row {
 
