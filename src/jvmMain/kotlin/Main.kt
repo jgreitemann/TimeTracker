@@ -1,3 +1,4 @@
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 enum class State {
     Pausing {
@@ -40,7 +44,10 @@ fun Timer(running: Boolean, onTimeChanged: (DateTimeInterval) -> Unit) {
 }
 
 @Composable
-fun App(model: WorkLogStore) {
+fun App(
+    model: WorkLogStore,
+    currentDate: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+) {
     var state by remember { mutableStateOf(State.Pausing) }
 
     Timer(running = state == State.Working) { interval ->
@@ -59,7 +66,7 @@ fun App(model: WorkLogStore) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TimerText(model.totalPeriod, style = MaterialTheme.typography.h2)
+                    TimerText(model.periodForDate(currentDate), style = MaterialTheme.typography.h2)
 
                     Row {
 
@@ -106,7 +113,7 @@ fun App(model: WorkLogStore) {
 @Composable
 @Preview
 fun AppPreview() {
-    App(FakeWorkLogStore)
+    App(FakeWorkLogStore, LocalDate.parse("2023-01-30"))
 }
 
 

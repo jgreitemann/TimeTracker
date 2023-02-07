@@ -1,6 +1,4 @@
-import kotlinx.datetime.DateTimePeriod
-import kotlinx.datetime.Instant
-import kotlinx.datetime.plus
+import kotlinx.datetime.*
 
 interface WorkLogStore {
     val workLog: List<DateTimeInterval>
@@ -9,8 +7,11 @@ interface WorkLogStore {
     fun clear()
 }
 
-val WorkLogStore.totalPeriod: DateTimePeriod
-    get() = workLog.map { it.toPeriod() }.fold(DateTimePeriod()) { acc, next -> acc + next }
+fun WorkLogStore.periodForDate(date: LocalDate): DateTimePeriod =
+    workLog
+        .filter { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date == date }
+        .map { it.toPeriod() }
+        .fold(DateTimePeriod()) { acc, next -> acc + next }
 
 object FakeWorkLogStore : WorkLogStore {
     override val workLog = listOf(
