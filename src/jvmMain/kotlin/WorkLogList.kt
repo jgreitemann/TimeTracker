@@ -1,5 +1,7 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -16,47 +18,47 @@ import java.util.*
 
 @Composable
 fun WorkLogList(workLog: List<DateTimeInterval>) {
-    Column {
-        workLog
+    LazyColumn {
+        items(workLog
             .groupBy { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date }
             .asIterable()
             .reversed()
-            .forEach { (date, intervals) ->
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+        ) { (date, intervals) ->
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val weekDay = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
-                        val month = date.month.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
-                        val totalTime = intervals.map { it.toPeriod() }.reduce { acc, period -> acc + period }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val weekDay = date.dayOfWeek.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+                    val month = date.month.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
+                    val totalTime = intervals.map { it.toPeriod() }.reduce { acc, period -> acc + period }
 
-                        Text("$weekDay, $month ${date.dayOfMonth}")
-                        Text(
-                            "${totalTime.hours}h ${totalTime.minutes}min",
-                            color = MaterialTheme.colors.primaryVariant,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 8.dp)
-                        )
-                    }
-
-                    Column {
-                        intervals.forEach { (start, end) ->
-                            val startTime = start.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
-                            val endTime = end.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
-
-                            Text(
-                                "$startTime — $endTime",
-                                Modifier.padding(vertical = 4.dp)
-                            )
-                        }
-                    }
+                    Text("$weekDay, $month ${date.dayOfMonth}")
+                    Text(
+                        "${totalTime.hours}h ${totalTime.minutes}min",
+                        color = MaterialTheme.colors.primaryVariant,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
 
-                Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
+                Column {
+                    intervals.forEach { (start, end) ->
+                        val startTime = start.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
+                        val endTime = end.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
+
+                        Text(
+                            "$startTime — $endTime",
+                            Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
             }
+
+            Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
+        }
     }
 }
 
