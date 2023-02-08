@@ -1,7 +1,11 @@
+
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -17,13 +21,20 @@ import java.util.*
 
 
 @Composable
-fun WorkLogList(workLog: List<DateTimeInterval>) {
-    LazyColumn {
-        items(workLog
-            .groupBy { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date }
-            .asIterable()
-            .reversed()
-        ) { (date, intervals) ->
+fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
+    val state = rememberLazyListState()
+
+    val days = workLog
+        .groupBy { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date }
+        .asIterable()
+        .reversed()
+
+    LazyColumn(
+        state = state,
+        modifier = Modifier.fillMaxSize().padding(vertical = 5.dp),
+    ) {
+        itemsIndexed(days) { idx, (date, intervals) ->
+
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -35,12 +46,14 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
                     val month = date.month.getDisplayName(TextStyle.SHORT_STANDALONE, Locale.getDefault())
                     val totalTime = intervals.map { it.toPeriod() }.reduce { acc, period -> acc + period }
 
-                    Text("$weekDay, $month ${date.dayOfMonth}")
+                    Text(
+                        "$weekDay, $month ${date.dayOfMonth}",
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
                     Text(
                         "${totalTime.hours}h ${totalTime.minutes}min",
                         color = MaterialTheme.colors.primaryVariant,
                         fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 8.dp)
                     )
                 }
 
@@ -57,9 +70,17 @@ fun WorkLogList(workLog: List<DateTimeInterval>) {
                 }
             }
 
-            Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
+            if (idx < days.lastIndex) {
+                Divider(Modifier.padding(PaddingValues(horizontal = 20.dp, vertical = 10.dp)))
+            }
         }
     }
+
+    VerticalScrollbar(
+        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+        adapter = rememberScrollbarAdapter(state),
+    )
+
 }
 
 private fun LocalTime.roundDown() = LocalTime(hour, minute)

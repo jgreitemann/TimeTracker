@@ -60,7 +60,7 @@ fun App(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Card(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                modifier = Modifier.fillMaxWidth(),
                 shape = CutCornerShape(0),
             ) {
                 Column(
