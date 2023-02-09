@@ -31,7 +31,8 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
 
     LazyColumn(
         state = state,
-        modifier = Modifier.fillMaxSize().padding(vertical = 5.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 10.dp),
     ) {
         itemsIndexed(days) { idx, (date, intervals) ->
 
@@ -77,8 +78,11 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
     }
 
     VerticalScrollbar(
-        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
         adapter = rememberScrollbarAdapter(state),
+        Modifier
+            .align(Alignment.CenterEnd)
+            .padding(end = 3.dp)
+            .fillMaxHeight(),
     )
 
 }
