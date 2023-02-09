@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
@@ -120,6 +121,7 @@ fun AppPreview() {
 fun main() = application {
     Window(
         title = "Time Tracker",
+        state = WindowState(width = 400.dp),
         onCloseRequest = ::exitApplication,
     ) {
         App(JsonFileWorkLogStore())
