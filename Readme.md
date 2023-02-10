@@ -10,7 +10,7 @@ you'd expect from the name: an app for logging work time.
 - [x] Persist state to disk, starting with JSON serialization
 - [x] Unit test coverage on business logic
 - [x] Improve UI: better layout, scrolling, duration summaries
-- [ ] Basic CI using GitHub Actions
+- [x] Basic CI using GitHub Actions
 - [ ] Ability to edit work logs retroactively
 - [ ] Switch to SQLite database for the backing store
 - [ ] Additional multiplatform targets: native, JS?

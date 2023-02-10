@@ -37,10 +37,13 @@ jobs:
         platform:
           - os: ubuntu-latest
             packageTask: packageReleaseDeb
+            artifactPath: build/compose/binaries/main-release/deb
           - os: macos-latest
             packageTask: packageReleaseDmg
+            artifactPath: build/compose/binaries/main-release/dmg
           - os: windows-latest
             packageTask: packageReleaseMsi
+            artifactPath: build/compose/binaries/main-release/msi
     runs-on: ${{ matrix.platform.os }}
 
     steps:
@@ -59,4 +62,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.platform.packageTask }}
-          path: build/compose/binaries/main-release
+          path: ${{ matrix.platform.artifactPath }}
