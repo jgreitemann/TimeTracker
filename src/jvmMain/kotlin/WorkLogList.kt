@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.datetime.*
+import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import java.time.format.TextStyle
 import java.util.*
 
@@ -59,15 +61,7 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
                 }
 
                 Column {
-                    intervals.forEach { (start, end) ->
-                        val startTime = start.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
-                        val endTime = end.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
-
-                        Text(
-                            "$startTime — $endTime",
-                            Modifier.padding(vertical = 4.dp)
-                        )
-                    }
+                    intervals.forEach { interval -> WorkLogEntry(interval) }
                 }
             }
 
@@ -86,8 +80,6 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
     )
 
 }
-
-private fun LocalTime.roundDown() = LocalTime(hour, minute)
 
 @Composable
 @Preview
