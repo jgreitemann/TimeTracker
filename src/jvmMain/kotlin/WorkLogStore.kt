@@ -3,7 +3,7 @@ import kotlinx.datetime.*
 interface WorkLogStore {
     val workLog: List<DateTimeInterval>
 
-    fun logWork(work: DateTimeInterval)
+    fun update(old: DateTimeInterval?, new: DateTimeInterval?)
     fun clear()
 }
 
@@ -23,6 +23,7 @@ object FakeWorkLogStore : WorkLogStore {
         DateTimeInterval(Instant.parse("2023-01-30T21:04:12+01"), Instant.parse("2023-01-30T22:59:08+01")),
     )
 
-    override fun logWork(work: DateTimeInterval) = TODO("Not yet implemented")
+    override fun update(old: DateTimeInterval?, new: DateTimeInterval?) = TODO("Not yet implemented")
+
     override fun clear() = TODO("Not yet implemented")
 }

@@ -23,13 +23,24 @@ class JsonFileWorkLogStore(
         }
     }
 
-    override fun logWork(work: DateTimeInterval) {
-        val merged = workLog.lastOrNull()?.merge(work)
-        if (merged != null) {
-            workLog[workLog.lastIndex] = merged
-        } else {
-            workLog.add(work)
+    override fun update(old: DateTimeInterval?, new: DateTimeInterval?) {
+        workLog.remove(old)
+
+        if (new != null) {
+            val toBeAdded = run {
+                for (existing in workLog) {
+                    val merged = existing merge new
+                    if (merged != null) {
+                        workLog.remove(existing)
+                        return@run merged
+                    }
+                }
+                new
+            }
+            workLog.add(toBeAdded)
         }
+
+        workLog.sortBy { it.start }
 
         val fileContent = json.encodeToString(workLog.toList())
         fs.write(filePath) { writeUtf8(fileContent) }

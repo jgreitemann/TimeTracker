@@ -1,4 +1,3 @@
-
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
@@ -9,7 +8,7 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,8 +22,9 @@ import java.util.*
 
 
 @Composable
-fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
+fun WorkLogList(workLog: List<DateTimeInterval>, onUpdate: (DateTimeInterval?, DateTimeInterval?) -> Unit) = Box {
     val state = rememberLazyListState()
+    var intervalBeingEdited by remember { mutableStateOf<DateTimeInterval?>(null) }
 
     val days = workLog
         .groupBy { it.start.toLocalDateTime(TimeZone.currentSystemDefault()).date }
@@ -61,7 +61,7 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
                 }
 
                 Column {
-                    intervals.forEach { interval -> WorkLogEntry(interval) }
+                    intervals.forEach { interval -> WorkLogEntry(interval, onEdit = { intervalBeingEdited = it }) }
                 }
             }
 
@@ -79,6 +79,9 @@ fun WorkLogList(workLog: List<DateTimeInterval>) = Box {
             .fillMaxHeight(),
     )
 
+    intervalBeingEdited?.let {
+        EditDialog(originalInterval = it, onClose = { intervalBeingEdited = null }, onUpdate = onUpdate)
+    }
 }
 
 @Composable
@@ -93,7 +96,8 @@ fun WorkLogListPreview() {
                 DateTimeInterval(Instant.parse("2023-01-29T14:42:00+01"), Instant.parse("2023-01-29T15:26:28+01")),
                 DateTimeInterval(Instant.parse("2023-01-29T15:59:07+01"), Instant.parse("2023-01-29T17:05:52+01")),
                 DateTimeInterval(Instant.parse("2023-02-01T21:04:12+01"), Instant.parse("2023-02-01T22:59:08+01")),
-            )
+            ),
+            onUpdate = { _, _ -> },
         )
     }
 }

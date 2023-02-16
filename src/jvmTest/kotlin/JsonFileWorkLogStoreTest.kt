@@ -25,7 +25,7 @@ class JsonFileWorkLogStoreTest {
                 |        "end": "2023-02-05T14:53:51.650201Z"
                 |    }
                 |]
-            """.trimMargin()
+                """.trimMargin()
             )
         }
         fs.write(invalidFilePath) {
@@ -41,7 +41,7 @@ class JsonFileWorkLogStoreTest {
                 |        "end": "2023-02-05T14:53:51.650201Z"
                 |    }
                 ]
-            """.trimMargin()
+                """.trimMargin()
             )
         }
     }
@@ -84,33 +84,37 @@ class JsonFileWorkLogStoreTest {
     @Test
     fun `Logging work creates a new backing file if one didn't previously exist`() {
         val store = JsonFileWorkLogStore(filePath = defaultFilePath, fs)
-        store.logWork(
+        store.update(
+            null,
             DateTimeInterval(
                 start = Instant.parse("2023-02-05T15:35:11.123Z"),
                 end = Instant.parse("2023-02-05T16:05:21.456Z")
             )
         )
         assertTrue(fs.exists(defaultFilePath), "The backing file should have been created upon logging work.")
-        assertEquals("""
+        assertEquals(
+            """
             |[
             |    {
             |        "start": "2023-02-05T15:35:11.123Z",
             |        "end": "2023-02-05T16:05:21.456Z"
             |    }
             |]
-        """.trimMargin(), fs.read(defaultFilePath) { readUtf8() })
+            """.trimMargin(), fs.read(defaultFilePath) { readUtf8() })
     }
 
     @Test
     fun `Logging work overwrites the backing file if one previously existed`() {
         val store = JsonFileWorkLogStore(filePath = validFilePath, fs)
-        store.logWork(
+        store.update(
+            null,
             DateTimeInterval(
                 start = Instant.parse("2023-02-05T14:53:30Z"),
                 end = Instant.parse("2023-02-05T14:55:00Z")
             )
         )
-        assertEquals("""
+        assertEquals(
+            """
             |[
             |    {
             |        "start": "2023-01-20T08:43:13.546Z",
@@ -121,15 +125,18 @@ class JsonFileWorkLogStoreTest {
             |        "end": "2023-02-05T14:55:00Z"
             |    }
             |]
-        """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Overlapping intervals should be merged")
+            """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Overlapping intervals should be merged"
+        )
 
-        store.logWork(
+        store.update(
+            null,
             DateTimeInterval(
                 start = Instant.parse("2023-02-05T15:35:11.123Z"),
                 end = Instant.parse("2023-02-05T16:05:21.456Z")
             )
         )
-        assertEquals("""
+        assertEquals(
+            """
             |[
             |    {
             |        "start": "2023-01-20T08:43:13.546Z",
@@ -144,7 +151,98 @@ class JsonFileWorkLogStoreTest {
             |        "end": "2023-02-05T16:05:21.456Z"
             |    }
             |]
-        """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Non-overlapping interval is appended")
+            """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Non-overlapping interval is appended"
+        )
+    }
+
+    @Test
+    fun `Editing an existing work log updates the backing file`() {
+        val store = JsonFileWorkLogStore(filePath = validFilePath, fs)
+        store.update(
+            DateTimeInterval(
+                start = Instant.parse("2023-01-20T08:43:13.546Z"),
+                end = Instant.parse("2023-01-21T01:13:05.938457Z"),
+            ),
+            DateTimeInterval(
+                start = Instant.parse("2023-01-21T08:43:13.546Z"),
+                end = Instant.parse("2023-01-22T01:13:05.938457Z"),
+            )
+        )
+        assertEquals(
+            """
+            |[
+            |    {
+            |        "start": "2023-01-21T08:43:13.546Z",
+            |        "end": "2023-01-22T01:13:05.938457Z"
+            |    },
+            |    {
+            |        "start": "2023-02-05T14:53:20.491888Z",
+            |        "end": "2023-02-05T14:53:51.650201Z"
+            |    }
+            |]
+            """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Existing interval should be replaced"
+        )
+
+        store.update(
+            DateTimeInterval(
+                start = Instant.parse("2023-01-21T08:43:13.546Z"),
+                end = Instant.parse("2023-01-22T01:13:05.938457Z")
+            ),
+            DateTimeInterval(
+                start = Instant.parse("2023-02-05T14:53:30Z"),
+                end = Instant.parse("2023-02-05T14:55:00Z")
+            )
+        )
+        assertEquals(
+            """
+        |[
+        |    {
+        |        "start": "2023-02-05T14:53:20.491888Z",
+        |        "end": "2023-02-05T14:55:00Z"
+        |    }
+        |]
+        """.trimMargin(), fs.read(validFilePath) { readUtf8() }, "Existing interval should be replaced"
+        )
+    }
+
+    @Test
+    fun `Deleting an existing work log updates the backing file`() {
+        val store = JsonFileWorkLogStore(filePath = validFilePath, fs)
+        store.update(
+            DateTimeInterval(
+                start = Instant.parse("2023-01-20T08:43:13.546Z"),
+                end = Instant.parse("2023-01-21T01:13:05.938457Z"),
+            ),
+            null
+        )
+        assertEquals(
+            """
+            |[
+            |    {
+            |        "start": "2023-02-05T14:53:20.491888Z",
+            |        "end": "2023-02-05T14:53:51.650201Z"
+            |    }
+            |]
+            """.trimMargin(),
+            fs.read(validFilePath) { readUtf8() },
+            "Existing interval should be removed; only one is left"
+        )
+
+        store.update(
+            DateTimeInterval(
+                start = Instant.parse("2023-02-05T14:53:20.491888Z"),
+                end = Instant.parse("2023-02-05T14:53:51.650201Z")
+            ),
+            null
+        )
+        assertEquals(
+            """
+            |[
+            |]
+            """.trimMargin(),
+            fs.read(validFilePath) { readUtf8() },
+            "Remaining interval should be removed; list is empty"
+        )
     }
 
     @Test
@@ -165,7 +263,8 @@ class JsonFileWorkLogStoreTest {
     fun `After clearing the store, additional work logs recreate the backing file`() {
         val store = JsonFileWorkLogStore(filePath = validFilePath, fs)
         store.clear()
-        store.logWork(
+        store.update(
+            null,
             DateTimeInterval(
                 start = Instant.parse("2023-02-05T15:35:11.123Z"),
                 end = Instant.parse("2023-02-05T16:05:21.456Z")

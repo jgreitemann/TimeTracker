@@ -52,7 +52,7 @@ fun App(
     var state by remember { mutableStateOf(State.Pausing) }
 
     Timer(running = state == State.Working) { interval ->
-        model.logWork(interval)
+        model.update(null, interval)
     }
 
     MaterialTheme {
@@ -105,7 +105,9 @@ fun App(
                 }
             }
 
-            WorkLogList(model.workLog)
+            WorkLogList(model.workLog, onUpdate = { old, new ->
+                model.update(old, new)
+            })
 
         }
     }

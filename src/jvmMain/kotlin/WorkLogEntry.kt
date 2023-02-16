@@ -25,7 +25,7 @@ private fun LocalTime.roundDown() = LocalTime(hour, minute)
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun WorkLogEntry(interval: DateTimeInterval, modifier: Modifier = Modifier) {
+fun WorkLogEntry(interval: DateTimeInterval, onEdit: (DateTimeInterval) -> Unit = {}, modifier: Modifier = Modifier) {
     val startTime = interval.start.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
     val endTime = interval.end.toLocalDateTime(TimeZone.currentSystemDefault()).time.roundDown()
     var hovered by remember { mutableStateOf(false) }
@@ -43,7 +43,7 @@ fun WorkLogEntry(interval: DateTimeInterval, modifier: Modifier = Modifier) {
         )
 
         IconButton(
-            onClick = { println("Huhu") },
+            onClick = { onEdit(interval) },
             modifier = Modifier.size(24.dp).alpha(if (hovered) {1.0f} else {0.0f}),
         ) {
             Icon(
@@ -66,7 +66,7 @@ fun WorkLogEntryPreview() = Column {
             start = Instant.parse("2023-02-12T08:12:00+01"),
             end = Instant.parse("2023-02-12T18:45:00+01")
         ),
-        modifier,
+        modifier = modifier,
     )
 
     WorkLogEntry(
@@ -74,7 +74,7 @@ fun WorkLogEntryPreview() = Column {
             start = Instant.parse("2023-02-12T11:11:00+01"),
             end = Instant.parse("2023-02-12T11:11:01+01")
         ),
-        modifier,
+        modifier = modifier,
     )
 
     WorkLogEntry(
@@ -82,6 +82,6 @@ fun WorkLogEntryPreview() = Column {
             start = Instant.parse("2023-02-12T23:44:00+01"),
             end = Instant.parse("2023-02-12T23:48:00+01")
         ),
-        modifier,
+        modifier = modifier,
     )
 }

@@ -11,7 +11,9 @@ you'd expect from the name: an app for logging work time.
 - [x] Unit test coverage on business logic
 - [x] Improve UI: better layout, scrolling, duration summaries
 - [x] Basic CI using GitHub Actions
-- [ ] Ability to edit work logs retroactively
+- [x] Ability to edit work logs retroactively
+- [ ] Polish edit dialog UI
+- [ ] Add a tray menu
 - [ ] Switch to SQLite database for the backing store
 - [ ] Additional multiplatform targets: native, JS?
 
